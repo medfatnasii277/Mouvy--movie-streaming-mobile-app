@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'app.dart';
 import 'providers/auth_provider.dart';
+import 'providers/movie_provider.dart';
 import 'services/supabase_client.dart';
 
 void main() async {
@@ -14,6 +15,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => MovieProvider()),
       ],
       child: const MyApp(),
     ),

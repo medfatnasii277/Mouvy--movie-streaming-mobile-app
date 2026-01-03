@@ -12,7 +12,7 @@ class HomeScreen extends StatelessWidget {
     final user = Supabase.instance.client.auth.currentUser;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SmokeX - Home'),
+        title: const Text('SmokeX'),
         backgroundColor: Colors.black,
         actions: [
           IconButton(
@@ -25,11 +25,68 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       backgroundColor: Colors.black,
-      body: Center(
-        child: Text(
-          'Welcome, ${user?.email ?? 'Guest'}',
-          style: const TextStyle(color: Colors.white, fontSize: 18),
-        ),
+      body: Column(
+        children: [
+          // Welcome header
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Text(
+                  'Welcome back, ${user?.email?.split('@')[0] ?? 'Guest'}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Quick access to movies
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Browse Movies',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Discover your next favorite movie from our collection.',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/movies');
+                      },
+                      icon: const Icon(Icons.movie),
+                      label: const Text('Browse Movies'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF00FF7F),
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

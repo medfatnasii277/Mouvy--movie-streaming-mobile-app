@@ -5,6 +5,8 @@ import 'providers/auth_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/movies_list_screen.dart';
+import 'screens/movie_detail_screen.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -61,6 +63,18 @@ class MyApp extends StatelessWidget {
             '/login': (context) => const LoginScreen(),
             '/register': (context) => const RegisterScreen(),
             '/home': (context) => const HomeScreen(),
+            '/movies': (context) => const MoviesListScreen(),
+          },
+          onGenerateRoute: (settings) {
+            if (settings.name == '/movie-detail') {
+              final movieId = settings.arguments as String?;
+              if (movieId != null) {
+                return MaterialPageRoute(
+                  builder: (context) => MovieDetailScreen(movieId: movieId),
+                );
+              }
+            }
+            return null;
           },
         );
       },
