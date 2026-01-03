@@ -90,104 +90,140 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
                 ),
               ),
 
-              // Expanded filter options
-              if (_isExpanded) ...[
-                const Divider(color: Colors.white24, height: 1),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Search bar
-                      TextField(
-                        controller: _searchController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'Search movies...',
-                          hintStyle: const TextStyle(color: Colors.white54),
-                          prefixIcon: const Icon(Icons.search, color: Color(0xFF00FF7F)),
-                          filled: true,
-                          fillColor: const Color(0xFF2A2A2A),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                        onChanged: (value) {
-                          // Debounce search
-                          Future.delayed(const Duration(milliseconds: 500), () {
-                            if (mounted && _searchController.text == value) {
-                              _applyFilters(titleSearch: value.isEmpty ? null : value);
-                            }
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Status filter
-                      _buildMultiSelectFilter(
-                        'Status',
-                        MovieFilterService.statuses,
-                        filters.statuses ?? [],
-                        (selected) => _applyFilters(statuses: selected.isEmpty ? null : selected),
-                      ),
-
-                      // Language filter
-                      _buildMultiSelectFilter(
-                        'Language',
-                        MovieFilterService.languages,
-                        filters.languages ?? [],
-                        (selected) => _applyFilters(languages: selected.isEmpty ? null : selected),
-                      ),
-
-                      // Maturity rating filter
-                      _buildMultiSelectFilter(
-                        'Maturity Rating',
-                        MovieFilterService.maturityRatings,
-                        filters.maturityRatings ?? [],
-                        (selected) => _applyFilters(maturityRatings: selected.isEmpty ? null : selected),
-                      ),
-
-                      // Release year range
-                      _buildYearRangeFilter(filters),
-
-                      // Duration range
-                      _buildDurationRangeFilter(filters),
-
-                      // Sort options
-                      _buildSortOptions(filters),
-
-                      // Action buttons
-                      const SizedBox(height: 16),
-                      Row(
+              // Expanded filter options (capped height)
+              if (_isExpanded)
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.5,
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () => movieProvider.clearFilters(),
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(color: Colors.white54),
-                                foregroundColor: Colors.white,
+                          // Search bar
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _searchController,
+                                  style: const TextStyle(color: Colors.white),
+                                  decoration: InputDecoration(
+                                    hintText: 'Search movies...',
+                                    hintStyle: const TextStyle(color: Colors.white54),
+                                    prefixIcon: const Icon(Icons.search, color: Color(0xFF00FF7F)),
+                                    suffixIcon: _searchController.text.isNotEmpty
+                                        ? IconButton(
+                                            icon: const Icon(Icons.clear, color: Colors.white54),
+                                            onPressed: () {
+                                              setState(() {
+                                                _searchController.clear();
+                                              });
+                                              _applyFilters(titleSearch: null);
+                                            },
+                                          )
+                                        : null,
+                                    filled: true,
+                                    fillColor: const Color(0xFF2A2A2A),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                  ),
+                                  onChanged: (value) {
+                                    // Debounce search
+                                    Future.delayed(const Duration(milliseconds: 500), () {
+                                      if (mounted && _searchController.text == value) {
+                                        _applyFilters(titleSearch: value.isEmpty ? null : value);
+                                      }
+                                    });
+                                  },
+                                ),
                               ),
-                              child: const Text('Clear All'),
-                            ),
+                              const SizedBox(width: 8),
+                              if (_searchController.text.isNotEmpty)
+                                TextButton.icon(
+                                  onPressed: () {
+                                    setState(() {
+                                      _searchController.clear();
+                                    });
+                                    _applyFilters(titleSearch: null);
+                                  },
+                                  icon: const Icon(Icons.list, size: 18),
+                                  label: const Text('Show All'),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: const Color(0xFF00FF7F),
+                                    textStyle: const TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                            ],
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () => setState(() => _isExpanded = false),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF00FF7F),
-                                foregroundColor: Colors.black,
+                          const SizedBox(height: 16),
+
+                          // Status filter
+                          _buildMultiSelectFilter(
+                            'Status',
+                            MovieFilterService.statuses,
+                            filters.statuses ?? [],
+                            (selected) => _applyFilters(statuses: selected.isEmpty ? null : selected),
+                          ),
+
+                          // Language filter
+                          _buildMultiSelectFilter(
+                            'Language',
+                            MovieFilterService.languages,
+                            filters.languages ?? [],
+                            (selected) => _applyFilters(languages: selected.isEmpty ? null : selected),
+                          ),
+
+                          // Maturity rating filter
+                          _buildMultiSelectFilter(
+                            'Maturity Rating',
+                            MovieFilterService.maturityRatings,
+                            filters.maturityRatings ?? [],
+                            (selected) => _applyFilters(maturityRatings: selected.isEmpty ? null : selected),
+                          ),
+
+                          // Release year range
+                          _buildYearRangeFilter(filters),
+
+                          // Duration range
+                          _buildDurationRangeFilter(filters),
+
+                          // Sort options
+                          _buildSortOptions(filters),
+
+                          // Action buttons
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () => movieProvider.clearFilters(),
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(color: Colors.white54),
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: const Text('Clear All'),
+                                ),
                               ),
-                              child: const Text('Apply'),
-                            ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () => setState(() => _isExpanded = false),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF00FF7F),
+                                    foregroundColor: Colors.black,
+                                  ),
+                                  child: const Text('Apply'),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              ],
             ],
           ),
         );
@@ -284,6 +320,7 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
           children: [
             Expanded(
               child: TextField(
+                controller: _yearFromController,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   hintText: 'From',
@@ -296,7 +333,6 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
                   ),
                 ),
                 keyboardType: TextInputType.number,
-                controller: _yearFromController,
                 onChanged: (value) {
                   final year = int.tryParse(value);
                   _applyFilters(
@@ -308,6 +344,7 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
             const SizedBox(width: 16),
             Expanded(
               child: TextField(
+                controller: _yearToController,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   hintText: 'To',
@@ -320,7 +357,6 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
                   ),
                 ),
                 keyboardType: TextInputType.number,
-                controller: _yearToController,
                 onChanged: (value) {
                   final year = int.tryParse(value);
                   _applyFilters(
@@ -349,6 +385,7 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
           children: [
             Expanded(
               child: TextField(
+                controller: _durationMinController,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   hintText: 'Min',
@@ -361,7 +398,6 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
                   ),
                 ),
                 keyboardType: TextInputType.number,
-                controller: _durationMinController,
                 onChanged: (value) {
                   final minutes = int.tryParse(value);
                   _applyFilters(
@@ -373,6 +409,7 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
             const SizedBox(width: 16),
             Expanded(
               child: TextField(
+                controller: _durationMaxController,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   hintText: 'Max',
@@ -385,7 +422,6 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
                   ),
                 ),
                 keyboardType: TextInputType.number,
-                controller: _durationMaxController,
                 onChanged: (value) {
                   final minutes = int.tryParse(value);
                   _applyFilters(
