@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/movie_provider.dart';
 import '../models/movie.dart';
+import '../widgets/movie_filter_bar.dart';
 
 class MoviesListScreen extends StatefulWidget {
   const MoviesListScreen({super.key});
@@ -29,61 +30,68 @@ class _MoviesListScreenState extends State<MoviesListScreen> {
         backgroundColor: Colors.black,
         elevation: 0,
       ),
-      body: Consumer<MovieProvider>(
-        builder: (context, movieProvider, child) {
-          if (movieProvider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: Color(0xFF00FF7F)),
-            );
-          }
+      body: Column(
+        children: [
+          const MovieFilterBar(),
+          Expanded(
+            child: Consumer<MovieProvider>(
+              builder: (context, movieProvider, child) {
+                if (movieProvider.isLoading) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF00FF7F)),
+                  );
+                }
 
-          if (movieProvider.error != null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Error: ${movieProvider.error}',
-                    style: const TextStyle(color: Colors.white),
-                    textAlign: TextAlign.center,
+                if (movieProvider.error != null) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Error: ${movieProvider.error}',
+                          style: const TextStyle(color: Colors.white),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            movieProvider.clearError();
+                            movieProvider.fetchMovies();
+                          },
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                if (movieProvider.movies.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'No movies available',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  );
+                }
+
+                return GridView.builder(
+                  padding: const EdgeInsets.all(16),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.7,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
                   ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      movieProvider.clearError();
-                      movieProvider.fetchMovies();
-                    },
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          if (movieProvider.movies.isEmpty) {
-            return const Center(
-              child: Text(
-                'No movies available',
-                style: TextStyle(color: Colors.white),
-              ),
-            );
-          }
-
-          return GridView.builder(
-            padding: const EdgeInsets.all(16),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.7,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
+                  itemCount: movieProvider.movies.length,
+                  itemBuilder: (context, index) {
+                    final movie = movieProvider.movies[index];
+                    return MovieCard(movie: movie);
+                  },
+                );
+              },
             ),
-            itemCount: movieProvider.movies.length,
-            itemBuilder: (context, index) {
-              final movie = movieProvider.movies[index];
-              return MovieCard(movie: movie);
-            },
-          );
-        },
+          ),
+        ],
       ),
     );
   }

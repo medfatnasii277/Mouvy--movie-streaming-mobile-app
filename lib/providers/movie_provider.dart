@@ -2,41 +2,97 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/movie.dart';
+import '../services/movie_filter_service.dart';
 
 class MovieProvider extends ChangeNotifier {
   final SupabaseClient _supabase = Supabase.instance.client;
+  final MovieFilterService _filterService = MovieFilterService();
 
   List<Movie> _movies = [];
   bool _isLoading = false;
   String? _error;
+  bool _hasMore = true;
+  int _currentPage = 0;
+  static const int _pageSize = 20;
+
+  // Current filter state
+  MovieFilters _currentFilters = MovieFilters();
 
   List<Movie> get movies => _movies;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  bool get hasMore => _hasMore;
+  MovieFilters get currentFilters => _currentFilters;
 
-  Future<void> fetchMovies() async {
+  /// Fetch movies with current filters
+  Future<void> fetchMovies({bool loadMore = false}) async {
+    if (loadMore && !_hasMore) return;
+
     _isLoading = true;
+    if (!loadMore) {
+      _currentPage = 0;
+      _movies.clear();
+      _hasMore = true;
+    }
     _error = null;
     notifyListeners();
 
     try {
-      // Fetch movies with their categories and actors
-      final response = await _supabase
-          .from('movies')
-          .select('''
-            *,
-            categories:movie_categories(
-              categories(*)
-            ),
-            actors:movie_actors(
-              *,
-              actor:actors(*)
-            )
-          ''')
-          .eq('status', 'released')
-          .order('release_date', ascending: false);
+      final offset = loadMore ? _currentPage * _pageSize : 0;
+      final response = await _filterService.fetchMovies(
+        statuses: _currentFilters.statuses,
+        languages: _currentFilters.languages,
+        maturityRatings: _currentFilters.maturityRatings,
+        releaseYearFrom: _currentFilters.releaseYearFrom,
+        releaseYearTo: _currentFilters.releaseYearTo,
+        durationMin: _currentFilters.durationMin,
+        durationMax: _currentFilters.durationMax,
+        titleSearch: _currentFilters.titleSearch,
+        categoryIds: _currentFilters.categoryIds,
+        includeSubcategories: _currentFilters.includeSubcategories,
+        actorIds: _currentFilters.actorIds,
+        sortBy: _currentFilters.sortBy,
+        ascending: _currentFilters.ascending,
+        limit: _pageSize,
+        offset: offset,
+      );
 
-      _movies = (response as List)
+      final newMovies = response
+          .map((json) => Movie.fromJson(_transformMovieJson(json)))
+          .toList();
+
+      if (loadMore) {
+        _movies.addAll(newMovies);
+      } else {
+        _movies = newMovies;
+      }
+
+      _hasMore = newMovies.length == _pageSize;
+      if (_hasMore) _currentPage++;
+    } catch (e) {
+      _error = e.toString();
+      _hasMore = false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Search movies with query
+  Future<void> searchMovies(String query) async {
+    _isLoading = true;
+    _error = null;
+    _movies.clear();
+    _hasMore = false; // Search doesn't support pagination for simplicity
+    notifyListeners();
+
+    try {
+      final response = await _filterService.searchMovies(
+        query: query,
+        limit: 50, // More results for search
+      );
+
+      _movies = response
           .map((json) => Movie.fromJson(_transformMovieJson(json)))
           .toList();
     } catch (e) {
@@ -44,6 +100,41 @@ class MovieProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  /// Apply new filters
+  Future<void> applyFilters(MovieFilters filters) async {
+    _currentFilters = filters;
+    await fetchMovies();
+  }
+
+  /// Update sorting
+  Future<void> updateSorting(String sortBy, bool ascending) async {
+    _currentFilters = _currentFilters.copyWith(sortBy: sortBy, ascending: ascending);
+    await fetchMovies();
+  }
+
+  /// Clear all filters
+  Future<void> clearFilters() async {
+    _currentFilters.clear();
+    await fetchMovies();
+  }
+
+  /// Load more movies (for infinite scrolling)
+  Future<void> loadMore() async {
+    if (!currentFilters.hasActiveFilters) {
+      await fetchMovies(loadMore: true);
+    }
+  }
+
+  /// Get filter metadata
+  Future<Map<String, dynamic>> getFilterMetadata() async {
+    try {
+      return await _filterService.getFilterMetadata();
+    } catch (e) {
+      _error = e.toString();
+      return {};
     }
   }
 
@@ -85,7 +176,7 @@ class MovieProvider extends ChangeNotifier {
           return {
             ...maMap,
             'actor': maMap['actor'] as Map<String, dynamic>,
-          } as Map<String, dynamic>;
+          };
         })
         .toList() ?? [];
 
