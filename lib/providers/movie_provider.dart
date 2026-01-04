@@ -183,7 +183,12 @@ class MovieProvider extends ChangeNotifier {
           .select('movie_id')
           .eq('user_id', user.id);
 
-      _favoriteIds = response.map((f) => f['movie_id'] as String).toSet();
+      final Set<String> ids = {};
+      for (var f in response) {
+        final id = f['movie_id'];
+        if (id is String) ids.add(id);
+      }
+      _favoriteIds = ids;
       notifyListeners();
     } catch (e) {
       _error = e.toString();
@@ -233,24 +238,15 @@ class MovieProvider extends ChangeNotifier {
 
       final response = await _supabase
           .from('favorites')
-          .select('''
-            movie_id,
-            movies(
-              *,
-              categories:movie_categories(
-                categories(*)
-              ),
-              actors:movie_actors(
-                *,
-                actor:actors(*)
-              )
-            )
-          ''')
+          .select('movies!inner(*, categories:movie_categories!inner(categories(*)), actors:movie_actors!inner(*, actor:actors(*)))')
           .eq('user_id', user.id);
 
-      _favorites = response
-          .map((f) => Movie.fromJson(_transformMovieJson(f['movies'] as Map<String, dynamic>)))
-          .toList();
+      final List<Movie> favoritesList = [];
+      for (var item in response) {
+        final movieData = item['movies'] ?? item;
+        favoritesList.add(Movie.fromJson(_transformMovieJson(movieData as Map<String, dynamic>)));
+      }
+      _favorites = favoritesList;
     } catch (e) {
       _error = e.toString();
     } finally {

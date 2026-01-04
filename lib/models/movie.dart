@@ -31,17 +31,17 @@ class Movie {
 
   factory Movie.fromJson(Map<String, dynamic> json) {
     return Movie(
-      id: json['id'],
-      title: json['title'],
-      description: json['description'],
+      id: json['id']?.toString() ?? '',
+      title: json['title']?.toString() ?? 'Unknown Title',
+      description: json['description']?.toString(),
       releaseDate: json['release_date'] != null ? DateTime.parse(json['release_date']) : null,
       duration: json['duration'] != null ? parseDuration(json['duration']) : null,
-      maturityRating: json['maturity_rating'],
-      language: json['language'],
-      posterUrl: json['poster_url'],
-      status: json['status'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      maturityRating: json['maturity_rating']?.toString(),
+      language: json['language']?.toString(),
+      posterUrl: json['poster_url']?.toString(),
+      status: json['status']?.toString() ?? 'unknown',
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now(),
+      updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at']) : DateTime.now(),
       categories: (json['categories'] as List<dynamic>?)
           ?.map((c) => Category.fromJson(c as Map<String, dynamic>))
           .toList() ?? [],
