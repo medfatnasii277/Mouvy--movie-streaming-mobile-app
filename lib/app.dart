@@ -7,6 +7,7 @@ import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/movies_list_screen.dart';
 import 'screens/movie_detail_screen.dart';
+import 'screens/favorites_screen.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -64,6 +65,7 @@ class MyApp extends StatelessWidget {
             '/register': (context) => const RegisterScreen(),
             '/home': (context) => const HomeScreen(),
             '/movies': (context) => const MoviesListScreen(),
+            '/favorites': (context) => const FavoritesScreen(),
           },
           onGenerateRoute: (settings) {
             if (settings.name == '/movie-detail') {

@@ -42,13 +42,27 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('SmokeX'),
         backgroundColor: Colors.black,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              final authProvider = context.read<AuthProvider>();
-              await authProvider.signOut();
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'favorites') {
+                Navigator.pushNamed(context, '/favorites');
+              } else if (value == 'logout') {
+                final authProvider = context.read<AuthProvider>();
+                authProvider.signOut();
+              }
             },
-          )
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem<String>(
+                value: 'favorites',
+                child: Text('View Favorites'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'logout',
+                child: Text('Logout'),
+              ),
+            ],
+            icon: const Icon(Icons.more_vert, color: Colors.white),
+          ),
         ],
       ),
       backgroundColor: Colors.black,

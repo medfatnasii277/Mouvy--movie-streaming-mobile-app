@@ -18,11 +18,21 @@ class MovieProvider extends ChangeNotifier {
   // Current filter state
   MovieFilters _currentFilters = MovieFilters();
 
+  // Favorites
+  Set<String> _favoriteIds = {};
+  List<Movie> _favorites = [];
+  bool _favoritesLoading = false;
+
   List<Movie> get movies => _movies;
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get hasMore => _hasMore;
   MovieFilters get currentFilters => _currentFilters;
+
+  // Favorites
+  Set<String> get favoriteIds => _favoriteIds;
+  List<Movie> get favorites => _favorites;
+  bool get favoritesLoading => _favoritesLoading;
 
   /// Fetch movies with current filters
   Future<void> fetchMovies({bool loadMore = false}) async {
@@ -159,6 +169,93 @@ class MovieProvider extends ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       return null;
+    }
+  }
+
+  /// Load favorite movie IDs for current user
+  Future<void> loadFavoriteIds() async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return;
+
+      final response = await _supabase
+          .from('favorites')
+          .select('movie_id')
+          .eq('user_id', user.id);
+
+      _favoriteIds = response.map((f) => f['movie_id'] as String).toSet();
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+    }
+  }
+
+  /// Check if movie is favorited
+  bool isFavorite(String movieId) => _favoriteIds.contains(movieId);
+
+  /// Toggle favorite status
+  Future<void> toggleFavorite(String movieId) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      if (isFavorite(movieId)) {
+        // Remove from favorites
+        await _supabase
+            .from('favorites')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('movie_id', movieId);
+        _favoriteIds.remove(movieId);
+      } else {
+        // Add to favorites
+        await _supabase
+            .from('favorites')
+            .insert({'user_id': user.id, 'movie_id': movieId});
+        _favoriteIds.add(movieId);
+      }
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// Fetch user's favorite movies
+  Future<void> fetchFavorites() async {
+    _favoritesLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return;
+
+      final response = await _supabase
+          .from('favorites')
+          .select('''
+            movie_id,
+            movies(
+              *,
+              categories:movie_categories(
+                categories(*)
+              ),
+              actors:movie_actors(
+                *,
+                actor:actors(*)
+              )
+            )
+          ''')
+          .eq('user_id', user.id);
+
+      _favorites = response
+          .map((f) => Movie.fromJson(_transformMovieJson(f['movies'] as Map<String, dynamic>)))
+          .toList();
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _favoritesLoading = false;
+      notifyListeners();
     }
   }
 

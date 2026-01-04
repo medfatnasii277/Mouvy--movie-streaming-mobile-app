@@ -3,23 +3,20 @@ import 'package:provider/provider.dart';
 
 import '../providers/movie_provider.dart';
 import '../models/movie.dart';
-import '../widgets/movie_filter_bar.dart';
 
-class MoviesListScreen extends StatefulWidget {
-  const MoviesListScreen({super.key});
+class FavoritesScreen extends StatefulWidget {
+  const FavoritesScreen({super.key});
 
   @override
-  State<MoviesListScreen> createState() => _MoviesListScreenState();
+  State<FavoritesScreen> createState() => _FavoritesScreenState();
 }
 
-class _MoviesListScreenState extends State<MoviesListScreen> {
+class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = context.read<MovieProvider>();
-      provider.fetchMovies();
-      provider.loadFavoriteIds();
+      context.read<MovieProvider>().fetchFavorites();
     });
   }
 
@@ -28,87 +25,79 @@ class _MoviesListScreenState extends State<MoviesListScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Movies', style: TextStyle(color: Colors.white)),
+        title: const Text('My Favorites', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.black,
         elevation: 0,
       ),
-      body: Column(
-        children: [
-          const MovieFilterBar(),
-          Expanded(
-            child: Consumer<MovieProvider>(
-              builder: (context, movieProvider, child) {
-                if (movieProvider.isLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF00FF7F)),
-                  );
-                }
+      body: Consumer<MovieProvider>(
+        builder: (context, movieProvider, child) {
+          if (movieProvider.favoritesLoading) {
+            return const Center(
+              child: CircularProgressIndicator(color: Color(0xFF00FF7F)),
+            );
+          }
 
-                if (movieProvider.error != null) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Error: ${movieProvider.error}',
-                          style: const TextStyle(color: Colors.white),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {
-                            movieProvider.clearError();
-                            movieProvider.fetchMovies();
-                          },
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                if (movieProvider.movies.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      'No movies available',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  );
-                }
-
-                return GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.7,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+          if (movieProvider.error != null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Error: ${movieProvider.error}',
+                    style: const TextStyle(color: Colors.white),
+                    textAlign: TextAlign.center,
                   ),
-                  itemCount: movieProvider.movies.length,
-                  itemBuilder: (context, index) {
-                    final movie = movieProvider.movies[index];
-                    return MovieCard(movie: movie);
-                  },
-                );
-              },
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      movieProvider.clearError();
+                      movieProvider.fetchFavorites();
+                    },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (movieProvider.favorites.isEmpty) {
+            return const Center(
+              child: Text(
+                'No favorite movies yet',
+                style: TextStyle(color: Colors.white),
+              ),
+            );
+          }
+
+          return GridView.builder(
+            padding: const EdgeInsets.all(16),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.7,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
             ),
-          ),
-        ],
+            itemCount: movieProvider.favorites.length,
+            itemBuilder: (context, index) {
+              final movie = movieProvider.favorites[index];
+              return FavoriteMovieCard(movie: movie);
+            },
+          );
+        },
       ),
     );
   }
 }
 
-class MovieCard extends StatelessWidget {
+class FavoriteMovieCard extends StatelessWidget {
   final Movie movie;
 
-  const MovieCard({super.key, required this.movie});
+  const FavoriteMovieCard({super.key, required this.movie});
 
   @override
   Widget build(BuildContext context) {
     return Consumer<MovieProvider>(
       builder: (context, movieProvider, child) {
-        final isFav = movieProvider.isFavorite(movie.id);
         return GestureDetector(
           onTap: () {
             Navigator.pushNamed(
@@ -158,9 +147,9 @@ class MovieCard extends StatelessWidget {
                         top: 8,
                         right: 8,
                         child: IconButton(
-                          icon: Icon(
-                            isFav ? Icons.star : Icons.star_border,
-                            color: isFav ? Colors.yellow : Colors.white,
+                          icon: const Icon(
+                            Icons.star,
+                            color: Colors.yellow,
                             size: 24,
                           ),
                           onPressed: () {
