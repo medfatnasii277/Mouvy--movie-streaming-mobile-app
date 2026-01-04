@@ -33,7 +33,7 @@ class HomeScreen extends StatelessWidget {
             child: Row(
               children: [
                 Text(
-                  'Welcome back, ${user?.email?.split('@')[0] ?? 'Guest'}',
+                  'Welcome back, ${user?.userMetadata?['username'] ?? user?.email?.split('@')[0] ?? 'Guest'}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
