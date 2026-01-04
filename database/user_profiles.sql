@@ -2,6 +2,7 @@
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID REFERENCES auth.users(id) PRIMARY KEY,
   username TEXT UNIQUE NOT NULL,
+  profile_icon TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
@@ -23,8 +24,13 @@ CREATE POLICY "Users can insert own profile" ON profiles
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, username)
-  VALUES (NEW.id, NEW.raw_user_meta_data->>'username');
+  INSERT INTO public.profiles (id, username, profile_icon)
+  VALUES (NEW.id, NEW.raw_user_meta_data->>'username', 
+    (ARRAY['https://mmueapwicxmuywaxugtj.supabase.co/storage/v1/object/public/movie_icons/icon1.png',
+           'https://mmueapwicxmuywaxugtj.supabase.co/storage/v1/object/public/movie_icons/icon2.png',
+           'https://mmueapwicxmuywaxugtj.supabase.co/storage/v1/object/public/movie_icons/icon3.png',
+           'https://mmueapwicxmuywaxugtj.supabase.co/storage/v1/object/public/movie_icons/icon4.png',
+           'https://mmueapwicxmuywaxugtj.supabase.co/storage/v1/object/public/movie_icons/icon5.png'])[floor(random() * 5 + 1)::int]);
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

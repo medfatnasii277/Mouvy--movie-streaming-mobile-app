@@ -4,8 +4,35 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../providers/auth_provider.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String? profileIcon;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProfile();
+  }
+
+  Future<void> _fetchProfile() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null) {
+      final response = await Supabase.instance.client
+          .from('profiles')
+          .select('profile_icon')
+          .eq('id', user.id)
+          .single();
+      setState(() {
+        profileIcon = response['profile_icon'] as String?;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,46 +70,34 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
           ),
-          // Quick access to movies
+          // Profile icon in center
           Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Browse Movies',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+            child: Center(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, '/movies');
+                },
+                child: Container(
+                  width: 150,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    image: profileIcon != null
+                        ? DecorationImage(
+                            image: NetworkImage(profileIcon!),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                    color: Colors.grey[800],
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Discover your next favorite movie from our collection.',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  Center(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/movies');
-                      },
-                      icon: const Icon(Icons.movie),
-                      label: const Text('Browse Movies'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00FF7F),
-                        foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ],
+                  child: profileIcon == null
+                      ? const Icon(
+                          Icons.person,
+                          size: 50,
+                          color: Colors.white,
+                        )
+                      : null,
+                ),
               ),
             ),
           ),
