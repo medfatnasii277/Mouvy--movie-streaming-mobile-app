@@ -43,8 +43,12 @@ class _HomeScreenState extends State<HomeScreen> {
       _isAnimating = true;
       _opacity = 0.0;
     });
-    Future.delayed(const Duration(milliseconds: 300), () {
-      Navigator.pushNamed(context, '/movies');
+    Future.delayed(const Duration(milliseconds: 300), () async {
+      await Navigator.pushNamed(context, '/movies');
+      setState(() {
+        _opacity = 1.0;
+        _isAnimating = false;
+      });
     });
   }
 
