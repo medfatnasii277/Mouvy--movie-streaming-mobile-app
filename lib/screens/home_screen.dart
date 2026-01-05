@@ -14,6 +14,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String? profileIcon;
+  double _opacity = 1.0;
+  bool _isAnimating = false;
 
   @override
   void initState() {
@@ -33,6 +35,17 @@ class _HomeScreenState extends State<HomeScreen> {
         profileIcon = response['profile_icon'] as String?;
       });
     }
+  }
+
+  void _onProfileTap() {
+    if (_isAnimating) return;
+    setState(() {
+      _isAnimating = true;
+      _opacity = 0.0;
+    });
+    Future.delayed(const Duration(milliseconds: 300), () {
+      Navigator.pushNamed(context, '/movies');
+    });
   }
 
   @override
@@ -99,29 +112,31 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: Center(
                   child: GestureDetector(
-                    onTap: () {
-                      Navigator.pushNamed(context, '/movies');
-                    },
-                    child: Container(
-                      width: 150,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        image: profileIcon != null
-                            ? DecorationImage(
-                                image: NetworkImage(profileIcon!),
-                                fit: BoxFit.cover,
+                    onTap: _onProfileTap,
+                    child: AnimatedOpacity(
+                      opacity: _opacity,
+                      duration: const Duration(milliseconds: 300),
+                      child: Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          image: profileIcon != null
+                              ? DecorationImage(
+                                  image: NetworkImage(profileIcon!),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
+                          color: Colors.grey[800],
+                        ),
+                        child: profileIcon == null
+                            ? const Icon(
+                                Icons.person,
+                                size: 50,
+                                color: Colors.white,
                               )
                             : null,
-                        color: Colors.grey[800],
                       ),
-                      child: profileIcon == null
-                          ? const Icon(
-                              Icons.person,
-                              size: 50,
-                              color: Colors.white,
-                            )
-                          : null,
                     ),
                   ),
                 ),
