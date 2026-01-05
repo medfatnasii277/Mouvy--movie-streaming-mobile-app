@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../providers/auth_provider.dart';
+import '../widgets/floating_dots.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -66,54 +67,66 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       backgroundColor: Colors.black,
-      body: Column(
+      body: Stack(
         children: [
-          // Welcome header
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Text(
-                  'Welcome back, ${user?.userMetadata?['username'] ?? user?.email?.split('@')[0] ?? 'Guest'}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+          // Floating dots animation background
+          const FloatingDots(
+            numberOfDots: 25,
+            dotColor: Color(0xFF00FF7F),
+            dotSize: 3.0,
+            animationDuration: Duration(seconds: 12),
           ),
-          // Profile icon in center
-          Expanded(
-            child: Center(
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, '/movies');
-                },
-                child: Container(
-                  width: 150,
-                  height: 150,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    image: profileIcon != null
-                        ? DecorationImage(
-                            image: NetworkImage(profileIcon!),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
-                    color: Colors.grey[800],
-                  ),
-                  child: profileIcon == null
-                      ? const Icon(
-                          Icons.person,
-                          size: 50,
-                          color: Colors.white,
-                        )
-                      : null,
+          // Main content
+          Column(
+            children: [
+              // Welcome header
+              Container(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Text(
+                      'Welcome back, ${user?.userMetadata?['username'] ?? user?.email?.split('@')[0] ?? 'Guest'}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
+              // Profile icon in center
+              Expanded(
+                child: Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(context, '/movies');
+                    },
+                    child: Container(
+                      width: 150,
+                      height: 150,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        image: profileIcon != null
+                            ? DecorationImage(
+                                image: NetworkImage(profileIcon!),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                        color: Colors.grey[800],
+                      ),
+                      child: profileIcon == null
+                          ? const Icon(
+                              Icons.person,
+                              size: 50,
+                              color: Colors.white,
+                            )
+                          : null,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
