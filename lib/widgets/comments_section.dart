@@ -141,42 +141,66 @@ class CommentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Consumer<MovieProvider>(
+      builder: (context, movieProvider, child) {
+        final likesCount = movieProvider.getCommentLikesCount(comment.id);
+        final isLiked = movieProvider.isCommentLiked(comment.id);
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A1A1A),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                comment.username ?? 'Anonymous',
-                style: const TextStyle(
-                  color: Color(0xFF00FF7F),
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                children: [
+                  Text(
+                    comment.username ?? 'Anonymous',
+                    style: const TextStyle(
+                      color: Color(0xFF00FF7F),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _formatDate(comment.createdAt),
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: Icon(
+                      isLiked ? Icons.favorite : Icons.favorite_border,
+                      color: isLiked ? Colors.red : Colors.white70,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      movieProvider.toggleCommentLike(comment.id);
+                    },
+                  ),
+                  Text(
+                    '$likesCount',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
+              const SizedBox(height: 8),
               Text(
-                _formatDate(comment.createdAt),
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                ),
+                comment.commentText,
+                style: const TextStyle(color: Colors.white),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            comment.commentText,
-            style: const TextStyle(color: Colors.white),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 

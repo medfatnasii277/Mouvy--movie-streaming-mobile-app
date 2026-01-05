@@ -28,6 +28,10 @@ class MovieProvider extends ChangeNotifier {
   List<Comment> _comments = [];
   bool _commentsLoading = false;
 
+  // Comment likes
+  Map<String, int> _commentLikesCount = {};
+  Set<String> _likedCommentIds = {};
+
   List<Movie> get movies => _movies;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -42,6 +46,10 @@ class MovieProvider extends ChangeNotifier {
   // Comments
   List<Comment> get comments => _comments;
   bool get commentsLoading => _commentsLoading;
+
+  // Comment likes
+  int getCommentLikesCount(String commentId) => _commentLikesCount[commentId] ?? 0;
+  bool isCommentLiked(String commentId) => _likedCommentIds.contains(commentId);
 
   /// Fetch movies with current filters
   Future<void> fetchMovies({bool loadMore = false}) async {
@@ -280,10 +288,74 @@ class MovieProvider extends ChangeNotifier {
       _comments = (response as List<dynamic>?)
           ?.map((c) => Comment.fromJson(c as Map<String, dynamic>))
           .toList() ?? [];
+
+      // Fetch likes for these comments
+      await _fetchCommentLikes(movieId);
     } catch (e) {
       _error = e.toString();
     } finally {
       _commentsLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _fetchCommentLikes(String movieId) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return;
+
+      // Get likes count for each comment
+      final likesResponse = await _supabase
+          .from('comment_likes')
+          .select('comment_id')
+          .in_('comment_id', _comments.map((c) => c.id).toList());
+
+      final likesCount = <String, int>{};
+      for (var like in likesResponse) {
+        final commentId = like['comment_id'] as String;
+        likesCount[commentId] = (likesCount[commentId] ?? 0) + 1;
+      }
+      _commentLikesCount = likesCount;
+
+      // Get user's liked comments
+      final userLikesResponse = await _supabase
+          .from('comment_likes')
+          .select('comment_id')
+          .eq('user_id', user.id)
+          .in_('comment_id', _comments.map((c) => c.id).toList());
+
+      _likedCommentIds = userLikesResponse.map((l) => l['comment_id'] as String).toSet();
+    } catch (e) {
+      // Ignore errors for likes
+    }
+  }
+
+  /// Toggle like on a comment
+  Future<void> toggleCommentLike(String commentId) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      if (_likedCommentIds.contains(commentId)) {
+        // Unlike
+        await _supabase
+            .from('comment_likes')
+            .delete()
+            .eq('comment_id', commentId)
+            .eq('user_id', user.id);
+        _likedCommentIds.remove(commentId);
+        _commentLikesCount[commentId] = (_commentLikesCount[commentId] ?? 0) - 1;
+      } else {
+        // Like
+        await _supabase
+            .from('comment_likes')
+            .insert({'comment_id': commentId, 'user_id': user.id});
+        _likedCommentIds.add(commentId);
+        _commentLikesCount[commentId] = (_commentLikesCount[commentId] ?? 0) + 1;
+      }
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
       notifyListeners();
     }
   }

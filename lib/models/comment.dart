@@ -6,6 +6,8 @@ class Comment {
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? username; // From profiles
+  final int likesCount;
+  final bool isLiked;
 
   Comment({
     required this.id,
@@ -15,6 +17,8 @@ class Comment {
     required this.createdAt,
     required this.updatedAt,
     this.username,
+    this.likesCount = 0,
+    this.isLiked = false,
   });
 
   factory Comment.fromJson(Map<String, dynamic> json) {
