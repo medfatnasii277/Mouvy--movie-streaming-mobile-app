@@ -249,11 +249,10 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
 
     if (filters.titleSearch?.isNotEmpty ?? false) {
       chips.add(
-        Chip(
+        ActionChip(
           label: Text('Search: "${filters.titleSearch}"', style: const TextStyle(color: Colors.white, fontSize: 12)),
           backgroundColor: const Color(0xFF00FF7F).withOpacity(0.2),
-          deleteIcon: const Icon(Icons.close, size: 16, color: Colors.white),
-          onDeleted: () => _applyFilters(titleSearch: null),
+          onPressed: () => _applyFilters(titleSearch: null),
         ),
       );
     }
@@ -261,11 +260,10 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
     if (filters.statuses?.isNotEmpty ?? false) {
       for (final status in filters.statuses!) {
         chips.add(
-          Chip(
+          ActionChip(
             label: Text('Status: $status', style: const TextStyle(color: Colors.white, fontSize: 12)),
             backgroundColor: const Color(0xFF00FF7F).withOpacity(0.2),
-            deleteIcon: const Icon(Icons.close, size: 16, color: Colors.white),
-            onDeleted: () {
+            onPressed: () {
               final newStatuses = filters.statuses!.where((s) => s != status).toList();
               _applyFilters(statuses: newStatuses.isEmpty ? null : newStatuses);
             },
@@ -277,11 +275,10 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
     if (filters.languages?.isNotEmpty ?? false) {
       for (final language in filters.languages!) {
         chips.add(
-          Chip(
+          ActionChip(
             label: Text('Language: $language', style: const TextStyle(color: Colors.white, fontSize: 12)),
             backgroundColor: const Color(0xFF00FF7F).withOpacity(0.2),
-            deleteIcon: const Icon(Icons.close, size: 16, color: Colors.white),
-            onDeleted: () {
+            onPressed: () {
               final newLanguages = filters.languages!.where((l) => l != language).toList();
               _applyFilters(languages: newLanguages.isEmpty ? null : newLanguages);
             },
@@ -293,11 +290,10 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
     if (filters.maturityRatings?.isNotEmpty ?? false) {
       for (final rating in filters.maturityRatings!) {
         chips.add(
-          Chip(
+          ActionChip(
             label: Text('Rating: $rating', style: const TextStyle(color: Colors.white, fontSize: 12)),
             backgroundColor: const Color(0xFF00FF7F).withOpacity(0.2),
-            deleteIcon: const Icon(Icons.close, size: 16, color: Colors.white),
-            onDeleted: () {
+            onPressed: () {
               final newRatings = filters.maturityRatings!.where((r) => r != rating).toList();
               _applyFilters(maturityRatings: newRatings.isEmpty ? null : newRatings);
             },
@@ -310,11 +306,10 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
       final from = filters.releaseYearFrom?.year.toString() ?? '';
       final to = filters.releaseYearTo?.year.toString() ?? '';
       chips.add(
-        Chip(
+        ActionChip(
           label: Text('Year: $from-$to', style: const TextStyle(color: Colors.white, fontSize: 12)),
           backgroundColor: const Color(0xFF00FF7F).withOpacity(0.2),
-          deleteIcon: const Icon(Icons.close, size: 16, color: Colors.white),
-          onDeleted: () => _applyFilters(releaseYearFrom: null, releaseYearTo: null),
+          onPressed: () => _applyFilters(releaseYearFrom: null, releaseYearTo: null),
         ),
       );
     }
@@ -323,11 +318,10 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
       final min = filters.durationMin?.inMinutes.toString() ?? '';
       final max = filters.durationMax?.inMinutes.toString() ?? '';
       chips.add(
-        Chip(
+        ActionChip(
           label: Text('Duration: ${min}m-${max}m', style: const TextStyle(color: Colors.white, fontSize: 12)),
           backgroundColor: const Color(0xFF00FF7F).withOpacity(0.2),
-          deleteIcon: const Icon(Icons.close, size: 16, color: Colors.white),
-          onDeleted: () => _applyFilters(durationMin: null, durationMax: null),
+          onPressed: () => _applyFilters(durationMin: null, durationMax: null),
         ),
       );
     }
