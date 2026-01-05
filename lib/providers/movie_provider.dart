@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/movie.dart';
 import '../services/movie_filter_service.dart';
+import '../models/comment.dart';
 
 class MovieProvider extends ChangeNotifier {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -23,6 +24,10 @@ class MovieProvider extends ChangeNotifier {
   List<Movie> _favorites = [];
   bool _favoritesLoading = false;
 
+  // Comments
+  List<Comment> _comments = [];
+  bool _commentsLoading = false;
+
   List<Movie> get movies => _movies;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -33,6 +38,10 @@ class MovieProvider extends ChangeNotifier {
   Set<String> get favoriteIds => _favoriteIds;
   List<Movie> get favorites => _favorites;
   bool get favoritesLoading => _favoritesLoading;
+
+  // Comments
+  List<Comment> get comments => _comments;
+  bool get commentsLoading => _commentsLoading;
 
   /// Fetch movies with current filters
   Future<void> fetchMovies({bool loadMore = false}) async {
@@ -253,6 +262,63 @@ class MovieProvider extends ChangeNotifier {
       _favoritesLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Fetch comments for a movie
+  Future<void> fetchComments(String movieId) async {
+    _commentsLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final response = await _supabase
+          .from('comments')
+          .select('*, profiles!user_id(username)')
+          .eq('movie_id', movieId)
+          .order('created_at', ascending: false);
+
+      _comments = (response as List<dynamic>?)
+          ?.map((c) => Comment.fromJson(c as Map<String, dynamic>))
+          .toList() ?? [];
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _commentsLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Add a comment to a movie
+  Future<bool> addComment(String movieId, String commentText) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return false;
+
+    try {
+      final response = await _supabase
+          .from('comments')
+          .insert({
+            'user_id': user.id,
+            'movie_id': movieId,
+            'comment_text': commentText,
+          })
+          .select('*, profiles!user_id(username)')
+          .single();
+
+      final newComment = Comment.fromJson(response as Map<String, dynamic>);
+      _comments.insert(0, newComment);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Clear comments (when switching movies)
+  void clearComments() {
+    _comments = [];
+    notifyListeners();
   }
 
   Map<String, dynamic> _transformMovieJson(Map<String, dynamic> json) {

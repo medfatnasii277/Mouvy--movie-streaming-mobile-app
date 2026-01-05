@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/movie_provider.dart';
 import '../models/movie.dart';
+import '../widgets/comments_section.dart';
 
 class MovieDetailScreen extends StatefulWidget {
   final String movieId;
@@ -265,6 +266,11 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
               ],
             ),
           ),
+        ),
+
+        // Comments section
+        SliverToBoxAdapter(
+          child: CommentsSection(movieId: widget.movieId),
         ),
       ],
     );
