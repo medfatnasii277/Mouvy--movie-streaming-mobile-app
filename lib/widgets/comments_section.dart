@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../providers/movie_provider.dart';
 import '../models/comment.dart';
@@ -134,73 +135,159 @@ class _CommentsSectionState extends State<CommentsSection> {
   }
 }
 
-class CommentCard extends StatelessWidget {
+class CommentCard extends StatefulWidget {
   final Comment comment;
 
   const CommentCard({super.key, required this.comment});
 
   @override
+  State<CommentCard> createState() => _CommentCardState();
+}
+
+class _CommentCardState extends State<CommentCard> {
+  bool _isEditing = false;
+  late TextEditingController _editController;
+
+  @override
+  void initState() {
+    super.initState();
+    _editController = TextEditingController(text: widget.comment.commentText);
+  }
+
+  @override
+  void dispose() {
+    _editController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveEdit() async {
+    final newText = _editController.text.trim();
+    if (newText.isEmpty || newText == widget.comment.commentText) {
+      setState(() => _isEditing = false);
+      return;
+    }
+
+    final success = await context.read<MovieProvider>().updateComment(widget.comment.id, newText);
+    if (success) {
+      setState(() => _isEditing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Comment updated!')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to update comment')),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Consumer<MovieProvider>(
-      builder: (context, movieProvider, child) {
-        final likesCount = movieProvider.getCommentLikesCount(comment.id);
-        final isLiked = movieProvider.isCommentLiked(comment.id);
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1A1A1A),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    final movieProvider = context.read<MovieProvider>();
+    final currentUser = Supabase.instance.client.auth.currentUser;
+    final isOwner = currentUser != null && currentUser.id == widget.comment.userId;
+    final likesCount = movieProvider.getCommentLikesCount(widget.comment.id);
+    final isLiked = movieProvider.isCommentLiked(widget.comment.id);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Text(
-                    comment.username ?? 'Anonymous',
-                    style: const TextStyle(
-                      color: Color(0xFF00FF7F),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _formatDate(comment.createdAt),
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: Icon(
-                      isLiked ? Icons.favorite : Icons.favorite_border,
-                      color: isLiked ? Colors.red : Colors.white70,
-                      size: 20,
-                    ),
-                    onPressed: () {
-                      movieProvider.toggleCommentLike(comment.id);
-                    },
-                  ),
-                  Text(
-                    '$likesCount',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
               Text(
-                comment.commentText,
-                style: const TextStyle(color: Colors.white),
+                widget.comment.username ?? 'Anonymous',
+                style: const TextStyle(
+                  color: Color(0xFF00FF7F),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                _formatDate(widget.comment.createdAt),
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                ),
+              ),
+              const Spacer(),
+              if (isOwner)
+                IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.white70, size: 20),
+                  onPressed: () {
+                    setState(() => _isEditing = !_isEditing);
+                  },
+                ),
+              IconButton(
+                icon: Icon(
+                  isLiked ? Icons.favorite : Icons.favorite_border,
+                  color: isLiked ? Colors.red : Colors.white70,
+                  size: 20,
+                ),
+                onPressed: () {
+                  movieProvider.toggleCommentLike(widget.comment.id);
+                },
+              ),
+              Text(
+                '$likesCount',
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
-        );
-      },
+          const SizedBox(height: 8),
+          if (_isEditing)
+            Column(
+              children: [
+                TextField(
+                  controller: _editController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white24),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF00FF7F)),
+                    ),
+                  ),
+                  maxLines: 3,
+                  minLines: 1,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        setState(() => _isEditing = false);
+                        _editController.text = widget.comment.commentText;
+                      },
+                      child: const Text('Cancel'),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: _saveEdit,
+                      child: const Text('Save'),
+                    ),
+                  ],
+                ),
+              ],
+            )
+          else
+            Text(
+              widget.comment.commentText,
+              style: const TextStyle(color: Colors.white),
+            ),
+        ],
+      ),
     );
   }
 

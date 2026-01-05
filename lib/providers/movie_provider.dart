@@ -390,6 +390,34 @@ class MovieProvider extends ChangeNotifier {
     }
   }
 
+  /// Update a comment
+  Future<bool> updateComment(String commentId, String newText) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return false;
+
+    try {
+      final response = await _supabase
+          .from('comments')
+          .update({'comment_text': newText, 'updated_at': DateTime.now().toIso8601String()})
+          .eq('id', commentId)
+          .eq('user_id', user.id)
+          .select('*, profiles!user_id(username)')
+          .single();
+
+      final updatedComment = Comment.fromJson(response as Map<String, dynamic>);
+      final index = _comments.indexWhere((c) => c.id == commentId);
+      if (index != -1) {
+        _comments[index] = updatedComment;
+        notifyListeners();
+      }
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
   /// Clear comments (when switching movies)
   void clearComments() {
     _comments = [];
