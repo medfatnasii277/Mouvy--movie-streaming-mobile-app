@@ -336,17 +336,20 @@ class MovieProvider extends ChangeNotifier {
     if (user == null) return;
 
     try {
-      if (_likedCommentIds.contains(commentId)) {
-        // Unlike
-        await _supabase
-            .from('comment_likes')
-            .delete()
-            .eq('comment_id', commentId)
-            .eq('user_id', user.id);
+      // First try to delete (if liked)
+      final deleteResult = await _supabase
+          .from('comment_likes')
+          .delete()
+          .eq('comment_id', commentId)
+          .eq('user_id', user.id)
+          .select();
+
+      if (deleteResult.isNotEmpty) {
+        // Was liked, now unliked
         _likedCommentIds.remove(commentId);
         _commentLikesCount[commentId] = (_commentLikesCount[commentId] ?? 0) - 1;
       } else {
-        // Like
+        // Was not liked, so like it
         await _supabase
             .from('comment_likes')
             .insert({'comment_id': commentId, 'user_id': user.id});
