@@ -19,12 +19,15 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
   final TextEditingController _durationMinController = TextEditingController();
   final TextEditingController _durationMaxController = TextEditingController();
 
+  late MovieProvider _provider;
+
   @override
   void initState() {
     super.initState();
+    _provider = context.read<MovieProvider>();
+    _provider.addListener(_onProviderChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = context.read<MovieProvider>();
-      _updateControllers(provider.currentFilters);
+      _updateControllers(_provider.currentFilters);
     });
   }
 
@@ -32,9 +35,12 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
   void didUpdateWidget(MovieFilterBar oldWidget) {
     super.didUpdateWidget(oldWidget);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = context.read<MovieProvider>();
-      _updateControllers(provider.currentFilters);
+      _updateControllers(_provider.currentFilters);
     });
+  }
+
+  void _onProviderChanged() {
+    setState(() {});
   }
 
   void _updateControllers(MovieFilters filters) {
@@ -47,6 +53,7 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
 
   @override
   void dispose() {
+    _provider.removeListener(_onProviderChanged);
     _searchController.dispose();
     _yearFromController.dispose();
     _yearToController.dispose();
@@ -75,11 +82,17 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
                       const Icon(Icons.filter_list, color: Color(0xFF00FF7F)),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(
-                          _getFilterSummary(filters),
-                          style: const TextStyle(color: Colors.white, fontSize: 14),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        child: filters.hasActiveFilters
+                            ? SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: _buildActiveFilterChips(filters),
+                                ),
+                              )
+                            : const Text(
+                                'Tap to filter movies',
+                                style: TextStyle(color: Colors.white70, fontSize: 14),
+                              ),
                       ),
                       Icon(
                         _isExpanded ? Icons.expand_less : Icons.expand_more,
@@ -231,35 +244,95 @@ class _MovieFilterBarState extends State<MovieFilterBar> {
     );
   }
 
-  String _getFilterSummary(MovieFilters filters) {
-    final activeFilters = <String>[];
+  List<Widget> _buildActiveFilterChips(MovieFilters filters) {
+    final chips = <Widget>[];
 
     if (filters.titleSearch?.isNotEmpty ?? false) {
-      activeFilters.add('Search: "${filters.titleSearch}"');
-    }
-    if (filters.statuses?.isNotEmpty ?? false) {
-      activeFilters.add('${filters.statuses!.length} status(es)');
-    }
-    if (filters.languages?.isNotEmpty ?? false) {
-      activeFilters.add('${filters.languages!.length} language(s)');
-    }
-    if (filters.maturityRatings?.isNotEmpty ?? false) {
-      activeFilters.add('${filters.maturityRatings!.length} rating(s)');
-    }
-    if (filters.releaseYearFrom != null || filters.releaseYearTo != null) {
-      activeFilters.add('Year range');
-    }
-    if (filters.durationMin != null || filters.durationMax != null) {
-      activeFilters.add('Duration range');
-    }
-    if (filters.categoryIds?.isNotEmpty ?? false) {
-      activeFilters.add('${filters.categoryIds!.length} categories');
-    }
-    if (filters.actorIds?.isNotEmpty ?? false) {
-      activeFilters.add('${filters.actorIds!.length} actors');
+      chips.add(
+        Chip(
+          label: Text('Search: "${filters.titleSearch}"', style: const TextStyle(color: Colors.white, fontSize: 12)),
+          backgroundColor: const Color(0xFF00FF7F).withOpacity(0.2),
+          deleteIcon: const Icon(Icons.close, size: 16, color: Colors.white),
+          onDeleted: () => _applyFilters(titleSearch: null),
+        ),
+      );
     }
 
-    return activeFilters.isEmpty ? 'No filters applied' : activeFilters.join(', ');
+    if (filters.statuses?.isNotEmpty ?? false) {
+      for (final status in filters.statuses!) {
+        chips.add(
+          Chip(
+            label: Text('Status: $status', style: const TextStyle(color: Colors.white, fontSize: 12)),
+            backgroundColor: const Color(0xFF00FF7F).withOpacity(0.2),
+            deleteIcon: const Icon(Icons.close, size: 16, color: Colors.white),
+            onDeleted: () {
+              final newStatuses = filters.statuses!.where((s) => s != status).toList();
+              _applyFilters(statuses: newStatuses.isEmpty ? null : newStatuses);
+            },
+          ),
+        );
+      }
+    }
+
+    if (filters.languages?.isNotEmpty ?? false) {
+      for (final language in filters.languages!) {
+        chips.add(
+          Chip(
+            label: Text('Language: $language', style: const TextStyle(color: Colors.white, fontSize: 12)),
+            backgroundColor: const Color(0xFF00FF7F).withOpacity(0.2),
+            deleteIcon: const Icon(Icons.close, size: 16, color: Colors.white),
+            onDeleted: () {
+              final newLanguages = filters.languages!.where((l) => l != language).toList();
+              _applyFilters(languages: newLanguages.isEmpty ? null : newLanguages);
+            },
+          ),
+        );
+      }
+    }
+
+    if (filters.maturityRatings?.isNotEmpty ?? false) {
+      for (final rating in filters.maturityRatings!) {
+        chips.add(
+          Chip(
+            label: Text('Rating: $rating', style: const TextStyle(color: Colors.white, fontSize: 12)),
+            backgroundColor: const Color(0xFF00FF7F).withOpacity(0.2),
+            deleteIcon: const Icon(Icons.close, size: 16, color: Colors.white),
+            onDeleted: () {
+              final newRatings = filters.maturityRatings!.where((r) => r != rating).toList();
+              _applyFilters(maturityRatings: newRatings.isEmpty ? null : newRatings);
+            },
+          ),
+        );
+      }
+    }
+
+    if (filters.releaseYearFrom != null || filters.releaseYearTo != null) {
+      final from = filters.releaseYearFrom?.year.toString() ?? '';
+      final to = filters.releaseYearTo?.year.toString() ?? '';
+      chips.add(
+        Chip(
+          label: Text('Year: $from-$to', style: const TextStyle(color: Colors.white, fontSize: 12)),
+          backgroundColor: const Color(0xFF00FF7F).withOpacity(0.2),
+          deleteIcon: const Icon(Icons.close, size: 16, color: Colors.white),
+          onDeleted: () => _applyFilters(releaseYearFrom: null, releaseYearTo: null),
+        ),
+      );
+    }
+
+    if (filters.durationMin != null || filters.durationMax != null) {
+      final min = filters.durationMin?.inMinutes.toString() ?? '';
+      final max = filters.durationMax?.inMinutes.toString() ?? '';
+      chips.add(
+        Chip(
+          label: Text('Duration: ${min}m-${max}m', style: const TextStyle(color: Colors.white, fontSize: 12)),
+          backgroundColor: const Color(0xFF00FF7F).withOpacity(0.2),
+          deleteIcon: const Icon(Icons.close, size: 16, color: Colors.white),
+          onDeleted: () => _applyFilters(durationMin: null, durationMax: null),
+        ),
+      );
+    }
+
+    return chips;
   }
 
   Widget _buildMultiSelectFilter(
