@@ -12,7 +12,7 @@ class MovieFilterBar extends StatefulWidget {
 }
 
 class _MovieFilterBarState extends State<MovieFilterBar> {
-  bool _isExpanded = true;
+  bool _isExpanded = false;
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _yearFromController = TextEditingController();
   final TextEditingController _yearToController = TextEditingController();
