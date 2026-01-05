@@ -418,6 +418,28 @@ class MovieProvider extends ChangeNotifier {
     }
   }
 
+  /// Delete a comment
+  Future<bool> deleteComment(String commentId) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return false;
+
+    try {
+      await _supabase
+          .from('comments')
+          .delete()
+          .eq('id', commentId)
+          .eq('user_id', user.id);
+
+      _comments.removeWhere((c) => c.id == commentId);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
   /// Clear comments (when switching movies)
   void clearComments() {
     _comments = [];

@@ -216,13 +216,48 @@ class _CommentCardState extends State<CommentCard> {
                 ),
               ),
               const Spacer(),
-              if (isOwner)
+              if (isOwner) ...[
                 IconButton(
                   icon: const Icon(Icons.edit, color: Colors.white70, size: 20),
                   onPressed: () {
                     setState(() => _isEditing = !_isEditing);
                   },
                 ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red, size: 20),
+                  onPressed: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Delete Comment'),
+                        content: const Text('Are you sure you want to delete this comment?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed == true) {
+                      final success = await movieProvider.deleteComment(widget.comment.id);
+                      if (success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Comment deleted!')),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Failed to delete comment')),
+                        );
+                      }
+                    }
+                  },
+                ),
+              ],
               IconButton(
                 icon: Icon(
                   isLiked ? Icons.favorite : Icons.favorite_border,
