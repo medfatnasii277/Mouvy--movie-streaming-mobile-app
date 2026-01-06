@@ -32,6 +32,10 @@ class MovieProvider extends ChangeNotifier {
   Map<String, int> _commentLikesCount = {};
   Set<String> _likedCommentIds = {};
 
+  // Ratings
+  Map<String, int> _userRatings = {};
+  Map<String, double> _averageRatings = {};
+
   List<Movie> get movies => _movies;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -50,6 +54,10 @@ class MovieProvider extends ChangeNotifier {
   // Comment likes
   int getCommentLikesCount(String commentId) => _commentLikesCount[commentId] ?? 0;
   bool isCommentLiked(String commentId) => _likedCommentIds.contains(commentId);
+
+  // Ratings
+  int? getUserRating(String movieId) => _userRatings[movieId];
+  double getAverageRating(String movieId) => _averageRatings[movieId] ?? 0.0;
 
   /// Fetch movies with current filters
   Future<void> fetchMovies({bool loadMore = false}) async {
@@ -444,6 +452,90 @@ class MovieProvider extends ChangeNotifier {
   void clearComments() {
     _comments = [];
     notifyListeners();
+  }
+
+  /// Add or update rating for a movie
+  Future<bool> addOrUpdateRating(String movieId, int rating) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return false;
+
+    try {
+      await _supabase
+          .from('ratings')
+          .upsert({
+            'user_id': user.id,
+            'movie_id': movieId,
+            'rating': rating,
+          });
+
+      _userRatings[movieId] = rating;
+      // Update average
+      await _updateAverageRating(movieId);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Fetch user rating for a movie
+  Future<void> fetchUserRating(String movieId) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      final response = await _supabase
+          .from('ratings')
+          .select('rating')
+          .eq('user_id', user.id)
+          .eq('movie_id', movieId)
+          .maybeSingle();
+
+      if (response != null) {
+        _userRatings[movieId] = response['rating'] as int;
+      } else {
+        _userRatings.remove(movieId);
+      }
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// Fetch average rating for a movie
+  Future<void> fetchAverageRating(String movieId) async {
+    try {
+      final response = await _supabase
+          .from('ratings')
+          .select('rating')
+          .eq('movie_id', movieId);
+
+      if (response.isNotEmpty) {
+        final ratings = response.map((r) => r['rating'] as int).toList();
+        final average = ratings.reduce((a, b) => a + b) / ratings.length;
+        _averageRatings[movieId] = average;
+      } else {
+        _averageRatings[movieId] = 0.0;
+      }
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// Update average rating (internal)
+  Future<void> _updateAverageRating(String movieId) async {
+    await fetchAverageRating(movieId);
+  }
+
+  /// Fetch both user rating and average for a movie
+  Future<void> fetchRatings(String movieId) async {
+    await fetchUserRating(movieId);
+    await fetchAverageRating(movieId);
   }
 
   Map<String, dynamic> _transformMovieJson(Map<String, dynamic> json) {

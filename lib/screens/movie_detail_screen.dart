@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/movie_provider.dart';
 import '../models/movie.dart';
 import '../widgets/comments_section.dart';
+import '../widgets/movie_rating_widget.dart';
 
 class MovieDetailScreen extends StatefulWidget {
   final String movieId;
@@ -265,6 +266,14 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                 ],
               ],
             ),
+          ),
+        ),
+
+        // Rating section
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: MovieRatingWidget(movieId: widget.movieId),
           ),
         ),
 
