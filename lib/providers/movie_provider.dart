@@ -36,6 +36,13 @@ class MovieProvider extends ChangeNotifier {
   Map<String, int> _userRatings = {};
   Map<String, double> _averageRatings = {};
 
+  // Recently viewed
+  String? _lastViewedMovieId;
+
+  // Notifications
+  List<Map<String, dynamic>> _notifications = [];
+  bool _notificationsLoading = false;
+
   List<Movie> get movies => _movies;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -60,8 +67,12 @@ class MovieProvider extends ChangeNotifier {
   double getAverageRating(String movieId) => _averageRatings[movieId] ?? 0.0;
 
   // Recently viewed
-  String? _lastViewedMovieId;
   String? get lastViewedMovieId => _lastViewedMovieId;
+
+  // Notifications
+  List<Map<String, dynamic>> get notifications => _notifications;
+  bool get notificationsLoading => _notificationsLoading;
+  int get unreadNotificationsCount => _notifications.where((n) => !(n['is_read'] as bool)).length;
 
   /// Fetch movies with current filters
   Future<void> fetchMovies({bool loadMore = false}) async {
@@ -367,6 +378,15 @@ class MovieProvider extends ChangeNotifier {
             .insert({'comment_id': commentId, 'user_id': user.id});
         _likedCommentIds.add(commentId);
         _commentLikesCount[commentId] = (_commentLikesCount[commentId] ?? 0) + 1;
+
+        // Create notification
+        final userProfile = await _supabase
+            .from('profiles')
+            .select('username')
+            .eq('id', user.id)
+            .single();
+        final likerUsername = userProfile['username'] as String? ?? 'Someone';
+        await _createCommentLikeNotification(commentId, likerUsername);
       }
       notifyListeners();
     } catch (e) {
@@ -605,6 +625,82 @@ class MovieProvider extends ChangeNotifier {
       _error = e.toString();
       notifyListeners();
       return false;
+    }
+  }
+
+  /// Fetch notifications for current user
+  Future<void> fetchNotifications() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      final response = await _supabase
+          .from('notifications')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', ascending: false);
+
+      _notifications = List<Map<String, dynamic>>.from(response);
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// Mark notification as read
+  Future<bool> markNotificationAsRead(String notificationId) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return false;
+
+    try {
+      await _supabase
+          .from('notifications')
+          .update({'is_read': true})
+          .eq('id', notificationId)
+          .eq('user_id', user.id);
+
+      final index = _notifications.indexWhere((n) => n['id'] == notificationId);
+      if (index != -1) {
+        _notifications[index]['is_read'] = true;
+        notifyListeners();
+      }
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Create notification for comment like
+  Future<void> _createCommentLikeNotification(String commentId, String likerUsername) async {
+    try {
+      // Get comment owner
+      final commentResponse = await _supabase
+          .from('comments')
+          .select('user_id, profiles!user_id(username)')
+          .eq('id', commentId)
+          .single();
+
+      final commentOwnerId = commentResponse['user_id'];
+      final commentOwnerUsername = (commentResponse['profiles'] as Map<String, dynamic>)['username'];
+
+      // Don't notify if liking own comment
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser == null || currentUser.id == commentOwnerId) return;
+
+      await _supabase
+          .from('notifications')
+          .insert({
+            'user_id': commentOwnerId,
+            'type': 'comment_like',
+            'message': '$likerUsername liked your comment',
+            'related_id': commentId,
+          });
+    } catch (e) {
+      // Silently fail for notifications
+      print('Failed to create notification: $e');
     }
   }
 

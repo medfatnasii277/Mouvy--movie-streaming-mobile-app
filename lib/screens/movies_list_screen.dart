@@ -22,6 +22,7 @@ class _MoviesListScreenState extends State<MoviesListScreen> {
       provider.fetchMovies();
       provider.loadFavoriteIds();
       provider.fetchLastViewedMovie();
+      provider.fetchNotifications();
     });
   }
 
@@ -34,6 +35,46 @@ class _MoviesListScreenState extends State<MoviesListScreen> {
         backgroundColor: Colors.black,
         elevation: 0,
         actions: [
+          Consumer<MovieProvider>(
+            builder: (context, movieProvider, child) {
+              final unreadCount = movieProvider.unreadNotificationsCount;
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications, color: Colors.white),
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/notifications');
+                    },
+                  ),
+                  if (unreadCount > 0)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 20,
+                          minHeight: 20,
+                        ),
+                        child: Text(
+                          unreadCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
           PopupMenuButton<String>(
             onSelected: (value) {
               if (value == 'favorites') {
