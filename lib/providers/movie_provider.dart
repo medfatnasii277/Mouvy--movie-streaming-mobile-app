@@ -466,7 +466,7 @@ class MovieProvider extends ChangeNotifier {
             'user_id': user.id,
             'movie_id': movieId,
             'rating': rating,
-          });
+          }, onConflict: 'user_id,movie_id');
 
       _userRatings[movieId] = rating;
       // Update average
