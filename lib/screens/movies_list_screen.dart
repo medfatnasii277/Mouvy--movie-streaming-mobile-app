@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/movie_provider.dart';
+import '../providers/auth_provider.dart';
 import '../models/movie.dart';
 import '../widgets/movie_filter_bar.dart';
 
@@ -32,6 +33,29 @@ class _MoviesListScreenState extends State<MoviesListScreen> {
         title: const Text('Movies', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.black,
         elevation: 0,
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'favorites') {
+                Navigator.pushNamed(context, '/favorites');
+              } else if (value == 'logout') {
+                final authProvider = context.read<AuthProvider>();
+                authProvider.signOut();
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem<String>(
+                value: 'favorites',
+                child: Text('View Favorites'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'logout',
+                child: Text('Logout'),
+              ),
+            ],
+            icon: const Icon(Icons.more_vert, color: Colors.white),
+          ),
+        ],
       ),
       body: Column(
         children: [
