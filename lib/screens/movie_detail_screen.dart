@@ -38,6 +38,8 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
         _movie = movie;
         _isLoading = false;
       });
+      // Update last viewed movie
+      context.read<MovieProvider>().updateLastViewedMovie(widget.movieId);
     } catch (e) {
       setState(() {
         _error = e.toString();

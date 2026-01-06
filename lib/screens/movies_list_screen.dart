@@ -20,6 +20,7 @@ class _MoviesListScreenState extends State<MoviesListScreen> {
       final provider = context.read<MovieProvider>();
       provider.fetchMovies();
       provider.loadFavoriteIds();
+      provider.fetchLastViewedMovie();
     });
   }
 
@@ -76,6 +77,20 @@ class _MoviesListScreenState extends State<MoviesListScreen> {
                   );
                 }
 
+                final movies = movieProvider.movies;
+                final lastViewedId = movieProvider.lastViewedMovieId;
+                List<Movie> sortedMovies = List.from(movies);
+                if (lastViewedId != null) {
+                  final lastViewedMovie = movies.firstWhere(
+                    (m) => m.id == lastViewedId,
+                    orElse: () => null as Movie,
+                  );
+                  if (lastViewedMovie != null) {
+                    sortedMovies.remove(lastViewedMovie);
+                    sortedMovies.insert(0, lastViewedMovie);
+                  }
+                }
+
                 return GridView.builder(
                   padding: const EdgeInsets.all(16),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -84,10 +99,11 @@ class _MoviesListScreenState extends State<MoviesListScreen> {
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),
-                  itemCount: movieProvider.movies.length,
+                  itemCount: sortedMovies.length,
                   itemBuilder: (context, index) {
-                    final movie = movieProvider.movies[index];
-                    return MovieCard(movie: movie);
+                    final movie = sortedMovies[index];
+                    final isRecentlyViewed = index == 0 && lastViewedId != null && movie.id == lastViewedId;
+                    return MovieCard(movie: movie, isRecentlyViewed: isRecentlyViewed);
                   },
                 );
               },
@@ -101,8 +117,9 @@ class _MoviesListScreenState extends State<MoviesListScreen> {
 
 class MovieCard extends StatelessWidget {
   final Movie movie;
+  final bool isRecentlyViewed;
 
-  const MovieCard({super.key, required this.movie});
+  const MovieCard({super.key, required this.movie, this.isRecentlyViewed = false});
 
   @override
   Widget build(BuildContext context) {
@@ -168,6 +185,26 @@ class MovieCard extends StatelessWidget {
                           },
                         ),
                       ),
+                      if (isRecentlyViewed)
+                        Positioned(
+                          top: 8,
+                          left: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF00FF7F),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'Recently Viewed',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),

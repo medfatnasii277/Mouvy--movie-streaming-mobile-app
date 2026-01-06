@@ -59,6 +59,10 @@ class MovieProvider extends ChangeNotifier {
   int? getUserRating(String movieId) => _userRatings[movieId];
   double getAverageRating(String movieId) => _averageRatings[movieId] ?? 0.0;
 
+  // Recently viewed
+  String? _lastViewedMovieId;
+  String? get lastViewedMovieId => _lastViewedMovieId;
+
   /// Fetch movies with current filters
   Future<void> fetchMovies({bool loadMore = false}) async {
     if (loadMore && !_hasMore) return;
@@ -561,6 +565,47 @@ class MovieProvider extends ChangeNotifier {
       'categories': categories,
       'actors': actors,
     };
+  }
+
+  /// Fetch last viewed movie ID for current user
+  Future<void> fetchLastViewedMovie() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      final response = await _supabase
+          .from('profiles')
+          .select('last_viewed_movie_id')
+          .eq('id', user.id)
+          .single();
+
+      _lastViewedMovieId = response['last_viewed_movie_id'] as String?;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// Update last viewed movie ID
+  Future<bool> updateLastViewedMovie(String movieId) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return false;
+
+    try {
+      await _supabase
+          .from('profiles')
+          .update({'last_viewed_movie_id': movieId})
+          .eq('id', user.id);
+
+      _lastViewedMovieId = movieId;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
   }
 
   void clearError() {
