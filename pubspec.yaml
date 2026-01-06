@@ -48,6 +48,9 @@ dependencies:
   # Load environment variables from .env
   flutter_dotenv: ^5.1.0
 
+  # App icons
+  flutter_launcher_icons: ^0.13.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -73,6 +76,21 @@ flutter:
   # Include .env file
   assets:
     - .env
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "../icon_app.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  web:
+    generate: true
+    image_path: "../icon_app.png"
+    background_color: "#hexcode"
+    theme_color: "#hexcode"
+  windows:
+    generate: true
+    image_path: "../icon_app.png"
+    icon_size: 48 # min:48, max:256, default: 48
 
   # To add assets to your application, add an assets section, like this:
   # assets:

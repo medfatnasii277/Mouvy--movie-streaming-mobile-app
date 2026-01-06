@@ -57,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final user = Supabase.instance.client.auth.currentUser;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SmokeX'),
+        title: const Text('Mouvy'),
         backgroundColor: Colors.black,
       ),
       backgroundColor: Colors.black,

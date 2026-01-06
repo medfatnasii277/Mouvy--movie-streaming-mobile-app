@@ -1,6 +1,6 @@
-# SmokeX - Netflix-Style Movie Streaming App
+# Mouvy - Netflix-Style Movie Streaming App
 
-SmokeX is a sleek, Netflix-inspired movie streaming app built for mobile devices. Discover, rate, and discuss your favorite movies with a personalized experience tailored just for you.
+Mouvy is a sleek, Netflix-inspired movie streaming app built for mobile devices. Discover, rate, and discuss your favorite movies with a personalized experience tailored just for you.
 
 ## 🎬 Key Features
 
@@ -42,4 +42,4 @@ SmokeX is a sleek, Netflix-inspired movie streaming app built for mobile devices
 4. Rate movies, leave comments, and build your favorites list
 5. Your recently viewed movie will always be easy to find at the top of the list
 
-Enjoy your personalized movie streaming experience with SmokeX!
+Enjoy your personalized movie streaming experience with Mouvy!

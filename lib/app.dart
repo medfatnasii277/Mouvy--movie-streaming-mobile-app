@@ -57,7 +57,7 @@ class MyApp extends StatelessWidget {
 
         return MaterialApp(
           navigatorKey: authProvider.navigatorKey,
-          title: 'SmokeX',
+          title: 'Mouvy',
           theme: theme,
           debugShowCheckedModeBanner: false,
           initialRoute: authProvider.isAuthenticated ? '/home' : '/login',
