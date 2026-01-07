@@ -51,6 +51,12 @@ dependencies:
   # App icons
   flutter_launcher_icons: ^0.13.1
 
+  # Image picker
+  image_picker: ^1.0.4
+
+  # Permissions
+  permission_handler: ^11.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

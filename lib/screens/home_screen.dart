@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../providers/auth_provider.dart';
 import '../widgets/floating_dots.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -20,10 +18,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchProfile();
+    fetchProfile();
   }
 
-  Future<void> _fetchProfile() async {
+  Future<void> fetchProfile() async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user != null) {
       final response = await Supabase.instance.client
@@ -59,6 +57,29 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Mouvy'),
         backgroundColor: Colors.black,
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) async {
+              if (value == 'edit_profile') {
+                await Navigator.pushNamed(context, '/edit_profile');
+                // Refresh profile after editing
+                fetchProfile();
+              } else if (value == 'logout') {
+                await Supabase.instance.client.auth.signOut();
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem<String>(
+                value: 'edit_profile',
+                child: Text('Edit Profile'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'logout',
+                child: Text('Logout'),
+              ),
+            ],
+          ),
+        ],
       ),
       backgroundColor: Colors.black,
       body: Stack(

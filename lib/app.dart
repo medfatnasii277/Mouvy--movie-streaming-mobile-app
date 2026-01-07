@@ -9,6 +9,7 @@ import 'screens/movies_list_screen.dart';
 import 'screens/movie_detail_screen.dart';
 import 'screens/favorites_screen.dart';
 import 'screens/notifications_screen.dart';
+import 'screens/edit_profile_screen.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -68,6 +69,7 @@ class MyApp extends StatelessWidget {
             '/movies': (context) => const MoviesListScreen(),
             '/favorites': (context) => const FavoritesScreen(),
             '/notifications': (context) => const NotificationsScreen(),
+            '/edit_profile': (context) => const EditProfileScreen(),
           },
           onGenerateRoute: (settings) {
             if (settings.name == '/movie-detail') {
