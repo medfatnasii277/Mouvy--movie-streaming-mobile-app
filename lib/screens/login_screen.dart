@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../l10n/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -82,12 +83,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: _loading ? null : _login,
-                      child: _loading ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Login'),
+                      child: _loading ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2)) : Text(AppLocalizations.of(context)!.login),
                     ),
                     const SizedBox(height: 12),
                     TextButton(
                       onPressed: () => Navigator.pushReplacementNamed(context, '/register'),
-                      child: const Text('Don\'t have an account? Register', style: TextStyle(color: Colors.white70)),
+                      child: Text(AppLocalizations.of(context)!.dontHaveAccount, style: const TextStyle(color: Colors.white70)),
                     ),
                   ],
                 ),

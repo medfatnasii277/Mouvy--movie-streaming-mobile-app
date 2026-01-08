@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/movie_provider.dart';
 import '../models/movie.dart';
+import '../l10n/app_localizations.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -25,7 +26,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('My Favorites', style: TextStyle(color: Colors.white)),
+        title: Text(AppLocalizations.of(context)!.viewFavorites, style: const TextStyle(color: Colors.white)),
         backgroundColor: Colors.black,
         elevation: 0,
       ),
@@ -43,7 +44,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Error: ${movieProvider.error}',
+                    '${AppLocalizations.of(context)!.error}: ${movieProvider.error}',
                     style: const TextStyle(color: Colors.white),
                     textAlign: TextAlign.center,
                   ),

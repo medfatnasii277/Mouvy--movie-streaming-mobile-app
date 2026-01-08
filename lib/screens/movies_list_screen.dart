@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 
 import '../providers/movie_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/locale_provider.dart';
 import '../models/movie.dart';
 import '../widgets/movie_filter_bar.dart';
+import '../l10n/app_localizations.dart';
 
 class MoviesListScreen extends StatefulWidget {
   const MoviesListScreen({super.key});
@@ -31,7 +33,7 @@ class _MoviesListScreenState extends State<MoviesListScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Movies', style: TextStyle(color: Colors.white)),
+        title: Text(AppLocalizations.of(context)!.movies, style: const TextStyle(color: Colors.white)),
         backgroundColor: Colors.black,
         elevation: 0,
         actions: [
@@ -79,19 +81,32 @@ class _MoviesListScreenState extends State<MoviesListScreen> {
             onSelected: (value) {
               if (value == 'favorites') {
                 Navigator.pushNamed(context, '/favorites');
+              } else if (value == 'edit_profile') {
+                Navigator.pushNamed(context, '/edit_profile');
+              } else if (value == 'language') {
+                final localeProvider = context.read<LocaleProvider>();
+                localeProvider.toggleLanguage();
               } else if (value == 'logout') {
                 final authProvider = context.read<AuthProvider>();
                 authProvider.signOut();
               }
             },
             itemBuilder: (BuildContext context) => [
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'favorites',
-                child: Text('View Favorites'),
+                child: Text(AppLocalizations.of(context)!.viewFavorites),
               ),
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
+                value: 'edit_profile',
+                child: Text(AppLocalizations.of(context)!.editProfile),
+              ),
+              PopupMenuItem<String>(
+                value: 'language',
+                child: Text('🌐 ${AppLocalizations.of(context)!.language}'),
+              ),
+              PopupMenuItem<String>(
                 value: 'logout',
-                child: Text('Logout'),
+                child: Text(AppLocalizations.of(context)!.logout),
               ),
             ],
             icon: const Icon(Icons.more_vert, color: Colors.white),
@@ -116,7 +131,7 @@ class _MoviesListScreenState extends State<MoviesListScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Error: ${movieProvider.error}',
+                          '${AppLocalizations.of(context)!.error}: ${movieProvider.error}',
                           style: const TextStyle(color: Colors.white),
                           textAlign: TextAlign.center,
                         ),
@@ -126,7 +141,7 @@ class _MoviesListScreenState extends State<MoviesListScreen> {
                             movieProvider.clearError();
                             movieProvider.fetchMovies();
                           },
-                          child: const Text('Retry'),
+                          child: Text(AppLocalizations.of(context)!.retry),
                         ),
                       ],
                     ),
@@ -134,10 +149,10 @@ class _MoviesListScreenState extends State<MoviesListScreen> {
                 }
 
                 if (movieProvider.movies.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Text(
-                      'No movies available',
-                      style: TextStyle(color: Colors.white),
+                      AppLocalizations.of(context)!.noMoviesAvailable,
+                      style: const TextStyle(color: Colors.white),
                     ),
                   );
                 }

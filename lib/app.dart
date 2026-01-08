@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/auth_provider.dart';
+import 'providers/locale_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
@@ -10,6 +12,7 @@ import 'screens/movie_detail_screen.dart';
 import 'screens/favorites_screen.dart';
 import 'screens/notifications_screen.dart';
 import 'screens/edit_profile_screen.dart';
+import 'l10n/app_localizations.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -56,31 +59,46 @@ class MyApp extends StatelessWidget {
           ),
         );
 
-        return MaterialApp(
-          navigatorKey: authProvider.navigatorKey,
-          title: 'Mouvy',
-          theme: theme,
-          debugShowCheckedModeBanner: false,
-          initialRoute: authProvider.isAuthenticated ? '/home' : '/login',
-          routes: {
-            '/login': (context) => const LoginScreen(),
-            '/register': (context) => const RegisterScreen(),
-            '/home': (context) => const HomeScreen(),
-            '/movies': (context) => const MoviesListScreen(),
-            '/favorites': (context) => const FavoritesScreen(),
-            '/notifications': (context) => const NotificationsScreen(),
-            '/edit_profile': (context) => const EditProfileScreen(),
-          },
-          onGenerateRoute: (settings) {
-            if (settings.name == '/movie-detail') {
-              final movieId = settings.arguments as String?;
-              if (movieId != null) {
-                return MaterialPageRoute(
-                  builder: (context) => MovieDetailScreen(movieId: movieId),
-                );
-              }
-            }
-            return null;
+        return Consumer<LocaleProvider>(
+          builder: (context, localeProvider, child) {
+            return MaterialApp(
+              navigatorKey: authProvider.navigatorKey,
+              title: 'Mouvy',
+              theme: theme,
+              debugShowCheckedModeBanner: false,
+              locale: localeProvider.locale,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('en'), // English
+                Locale('fr'), // French
+              ],
+              initialRoute: authProvider.isAuthenticated ? '/home' : '/login',
+              routes: {
+                '/login': (context) => const LoginScreen(),
+                '/register': (context) => const RegisterScreen(),
+                '/home': (context) => const HomeScreen(),
+                '/movies': (context) => const MoviesListScreen(),
+                '/favorites': (context) => const FavoritesScreen(),
+                '/notifications': (context) => const NotificationsScreen(),
+                '/edit_profile': (context) => const EditProfileScreen(),
+              },
+              onGenerateRoute: (settings) {
+                if (settings.name == '/movie-detail') {
+                  final movieId = settings.arguments as String?;
+                  if (movieId != null) {
+                    return MaterialPageRoute(
+                      builder: (context) => MovieDetailScreen(movieId: movieId),
+                    );
+                  }
+                }
+                return null;
+              },
+            );
           },
         );
       },

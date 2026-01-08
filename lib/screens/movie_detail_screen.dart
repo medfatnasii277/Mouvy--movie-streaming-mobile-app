@@ -5,6 +5,7 @@ import '../providers/movie_provider.dart';
 import '../models/movie.dart';
 import '../widgets/comments_section.dart';
 import '../widgets/movie_rating_widget.dart';
+import '../l10n/app_localizations.dart';
 
 class MovieDetailScreen extends StatefulWidget {
   final String movieId;
@@ -62,23 +63,23 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Error: $_error',
+                        '${AppLocalizations.of(context)!.error}: $_error',
                         style: const TextStyle(color: Colors.white),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _loadMovie,
-                        child: const Text('Retry'),
+                        child: Text(AppLocalizations.of(context)!.retry),
                       ),
                     ],
                   ),
                 )
               : _movie == null
-                  ? const Center(
+                  ? Center(
                       child: Text(
-                        'Movie not found',
-                        style: TextStyle(color: Colors.white),
+                        AppLocalizations.of(context)!.movieNotFound,
+                        style: const TextStyle(color: Colors.white),
                       ),
                     )
                   : _buildMovieDetail(),
@@ -145,11 +146,11 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                     onPressed: () {
                       // TODO: Implement play functionality
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Play functionality coming soon!')),
+                        SnackBar(content: Text(AppLocalizations.of(context)!.playComingSoon)),
                       );
                     },
                     icon: const Icon(Icons.play_arrow),
-                    label: const Text('Play'),
+                    label: Text(AppLocalizations.of(context)!.play),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black,
@@ -231,9 +232,9 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                 // Description
                 if (movie.description != null) ...[
                   const SizedBox(height: 24),
-                  const Text(
-                    'Storyline',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context)!.description,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -253,9 +254,9 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                 // Cast
                 if (movie.actors.isNotEmpty) ...[
                   const SizedBox(height: 24),
-                  const Text(
-                    'Cast',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context)!.cast,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -308,7 +309,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
             if (movieActor.roleName != null) ...[
               const SizedBox(width: 8),
               Text(
-                'as ${movieActor.roleName}',
+                '${AppLocalizations.of(context)!.as} ${movieActor.roleName}',
                 style: const TextStyle(
                   color: Colors.white70,
                   fontSize: 14,

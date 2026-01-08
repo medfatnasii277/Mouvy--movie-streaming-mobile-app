@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 import '../providers/movie_provider.dart';
+import '../l10n/app_localizations.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -25,7 +26,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Notifications', style: TextStyle(color: Colors.white)),
+        title: Text(AppLocalizations.of(context)!.notifications, style: const TextStyle(color: Colors.white)),
         backgroundColor: Colors.black,
         elevation: 0,
       ),
@@ -34,10 +35,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           final notifications = movieProvider.notifications;
 
           if (notifications.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
-                'No notifications yet',
-                style: TextStyle(color: Colors.white70),
+                AppLocalizations.of(context)!.noNotifications,
+                style: const TextStyle(color: Colors.white70),
               ),
             );
           }

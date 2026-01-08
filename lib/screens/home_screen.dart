@@ -57,29 +57,6 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Mouvy'),
         backgroundColor: Colors.black,
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) async {
-              if (value == 'edit_profile') {
-                await Navigator.pushNamed(context, '/edit_profile');
-                // Refresh profile after editing
-                fetchProfile();
-              } else if (value == 'logout') {
-                await Supabase.instance.client.auth.signOut();
-              }
-            },
-            itemBuilder: (BuildContext context) => [
-              const PopupMenuItem<String>(
-                value: 'edit_profile',
-                child: Text('Edit Profile'),
-              ),
-              const PopupMenuItem<String>(
-                value: 'logout',
-                child: Text('Logout'),
-              ),
-            ],
-          ),
-        ],
       ),
       backgroundColor: Colors.black,
       body: Stack(

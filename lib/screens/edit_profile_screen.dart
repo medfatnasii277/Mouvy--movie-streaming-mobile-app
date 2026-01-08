@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../l10n/app_localizations.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -58,7 +59,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (!status.isGranted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Permission denied to access photos. Please enable it in settings.'),
+          content: Text(AppLocalizations.of(context)!.permissionDeniedPhotos),
           action: SnackBarAction(
             label: 'Settings',
             onPressed: () => openAppSettings(),
@@ -84,7 +85,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to pick image: $e')),
+        SnackBar(content: Text('${AppLocalizations.of(context)!.failedToPickImage}: $e')),
       );
     }
   }
@@ -108,7 +109,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return publicUrl;
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to upload image: $e')),
+        SnackBar(content: Text('${AppLocalizations.of(context)!.failedToUploadImage}: $e')),
       );
       return null;
     }
@@ -151,13 +152,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.profileUpdatedSuccessfully)),
       );
 
       Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update profile: $e')),
+        SnackBar(content: Text('${AppLocalizations.of(context)!.failedToUpdateProfile}: $e')),
       );
     } finally {
       setState(() => _loading = false);
@@ -174,7 +175,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        title: Text(AppLocalizations.of(context)!.editProfile),
         backgroundColor: Colors.black,
       ),
       backgroundColor: Colors.black,
@@ -219,7 +220,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 const SizedBox(height: 10),
                 TextButton(
                   onPressed: _pickImage,
-                  child: const Text('Change Profile Picture'),
+                  child: Text(AppLocalizations.of(context)!.changeProfilePicture),
                 ),
                 const SizedBox(height: 30),
 
@@ -261,7 +262,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Save Changes'),
+                      : Text(AppLocalizations.of(context)!.saveChanges),
                 ),
               ],
             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../l10n/app_localizations.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -66,7 +67,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 24),
-                    const Text('Create account', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                    Text(AppLocalizations.of(context)!.createAccount, style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
                     const SizedBox(height: 24),
                     TextFormField(
                       controller: _usernameController,
@@ -114,12 +115,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: _loading ? null : _register,
-                      child: _loading ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Register'),
+                      child: _loading ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2)) : Text(AppLocalizations.of(context)!.register),
                     ),
                     const SizedBox(height: 12),
                     TextButton(
                       onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
-                      child: const Text('Already have an account? Login', style: TextStyle(color: Colors.white70)),
+                      child: Text(AppLocalizations.of(context)!.alreadyHaveAccount, style: const TextStyle(color: Colors.white70)),
                     ),
                   ],
                 ),
